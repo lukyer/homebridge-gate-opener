@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "GateOpenerHomebridgePlugin",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,37 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "@lukyer/homebridge-gate-opener"
+      },
+      "platform": {
+        "title": "Platform",
+        "type": "string",
+        "required": true,
+        "default": "GateOpenerHomebridgePlugin"
+      },
+      "refreshIntervalMs": {
+        "title": "Refresh",
+        "type": "integer",
+        "required": false,
+        "default": 1000
+      },
+      "statusUrl": {
+        "title": "GET Url to get current gate status from sensor",
+        "type": "string",
+        "required": true,
+        "default": "http://aaa.com:1234/sync-status"
+      },
+      "toggleUrl": {
+        "title": "POST Url to toggle current gate status by calling motor",
+        "type": "string",
+        "required": true,
+        "default": "http://aaa.com:1234/gate"
+      },
+      "bearerToken": {
+        "title": "Authorization header token",
+        "type": "string",
+        "required": false,
+        "default": "abcd1234"
       }
     }
   }
