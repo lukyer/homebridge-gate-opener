@@ -251,7 +251,8 @@ export class ExamplePlatformAccessory {
 
       callback(null);
       if (this.prevState === this.platform.Characteristic.CurrentDoorState.OPEN) {
-        if (value === this.platform.Characteristic.TargetDoorState.OPEN) {
+        const diffMs = Date.now() - this.stateUpdatedMs;
+        if (value === this.platform.Characteristic.TargetDoorState.OPEN && diffMs <= 30*1000) {
           if (this.fixer % 2 === 0) {
             this.service.updateCharacteristic(this.platform.Characteristic.TargetDoorState, this.platform.Characteristic.TargetDoorState.CLOSED);
             this.fixer++;
