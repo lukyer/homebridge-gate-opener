@@ -35,6 +35,7 @@ export class ExamplePlatformAccessory {
   private bearerToken: string;
   private authHeaders = {};
 
+  private stateUpdatedMs = 0; // epoch
   private fixer = 0;
 
   constructor(
@@ -164,6 +165,7 @@ export class ExamplePlatformAccessory {
           that.service.updateCharacteristic(that.platform.Characteristic.CurrentDoorState, state);
           that.service.updateCharacteristic(that.platform.Characteristic.TargetDoorState, state);
           that.prevState = state;
+          that.stateUpdatedMs = Date.now();
           this.fixer = 0; // reset
         }
         setTimeout(fn, this.refreshIntervalMs);
@@ -214,9 +216,12 @@ export class ExamplePlatformAccessory {
   ) => {
     try {
       if (value === this.platform.Characteristic.TargetDoorState.OPEN || value === this.platform.Characteristic.TargetDoorState.CLOSED) {
-        // if (this.prevState === value) { // do not toggle gate e.g. if you want open when is already opened
-        //   this.platform.log.debug('Set target skip already set value %s', value);
-        // } else {
+        const diffMs = Date.now() - this.stateUpdatedMs;
+        if (this.prevState === value && diffMs > 30*1000) {
+          // do not toggle gate e.g. if you want open when is already opened
+          // but only after 30s = if you want e.g. to suddenly change direction when accidentally opened
+          this.platform.log.debug('Set target skip already set value %s. DiffMs:', value, diffMs);
+        } else {
           await got.post(this.toggleUrl, {
             ...this.authHeaders,
           });
@@ -239,7 +244,7 @@ export class ExamplePlatformAccessory {
         // }
 
           this.platform.log.debug('Set accessory state %s', value);
-        // }
+        }
       } else {
         this.platform.log.error('Set target WRONG value %s', value);
       }
