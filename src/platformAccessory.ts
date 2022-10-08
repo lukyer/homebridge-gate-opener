@@ -217,9 +217,10 @@ export class ExamplePlatformAccessory {
     try {
       if (value === this.platform.Characteristic.TargetDoorState.OPEN || value === this.platform.Characteristic.TargetDoorState.CLOSED) {
         const diffMs = Date.now() - this.stateUpdatedMs;
-        if (this.prevState === value && diffMs > 30*1000) {
+        if ((this.prevState === value && diffMs > 30*1000 && value === this.platform.Characteristic.TargetDoorState.OPEN) ||
+            (this.prevState === value && value === this.platform.Characteristic.TargetDoorState.CLOSED)) {
           // do not toggle gate e.g. if you want open when is already opened
-          // but only after 30s = if you want e.g. to suddenly change direction when accidentally opened
+          // but only after 30s when wanting OPEN = if you want e.g. to suddenly change direction when accidentally opened
           this.platform.log.debug('Set target skip already set value %s. DiffMs:', value, diffMs);
         } else {
           await got.post(this.toggleUrl, {
