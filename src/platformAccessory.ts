@@ -175,6 +175,7 @@ export class ExamplePlatformAccessory {
             that.platform.log.debug('Auto close timer cleared', state, body);
           }
           if (state === that.platform.Characteristic.CurrentDoorState.OPEN) {
+            that.platform.log.debug('Auto close timer set', state, body);
             that.autoCloseTimeout = setTimeout(async () => {
               await got.post(that.toggleUrl, {
                 ...that.authHeaders,
