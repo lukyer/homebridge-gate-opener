@@ -172,15 +172,13 @@ export class ExamplePlatformAccessory {
           that.fixer = 0; // reset
           if (that.autoCloseTimeout !== undefined) {
             clearTimeout(that.autoCloseTimeout);
-            that.platform.log.debug('Auto close timer cleared', state, body);
+            that.platform.log.debug('Auto close timer cleared %s (%s)', state, body);
           }
           if (state === that.platform.Characteristic.CurrentDoorState.OPEN) {
-            that.platform.log.debug('Auto close timer set', state, body);
+            that.platform.log.debug('Auto close timer set %s (%s)', state, body);
             that.autoCloseTimeout = setTimeout(async () => {
-              await got.post(that.toggleUrl, {
-                ...that.authHeaders,
-              });
-              that.platform.log.debug('Auto close timer ticked', state, body);
+              that.service.setCharacteristic(that.platform.Characteristic.TargetDoorState, that.platform.Characteristic.CurrentDoorState.CLOSED);
+              that.platform.log.debug('Auto close timer ticked %s (%s)', state, body);
             }, that.autoCloseSec * 1000);
           }
         }
