@@ -34,15 +34,18 @@ export class ExamplePlatformAccessory {
   private toggleUrl: string;
   private bearerToken: string;
   private authHeaders = {};
+  private autoCloseSec = 600;
 
   private stateUpdatedMs = 0; // epoch
   private fixer = 0;
+  private autoCloseTimeout;
 
   constructor(
     private readonly platform: ExampleHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
 
+    this.autoCloseSec = this.platform.config.autoCloseSec || this.autoCloseSec;
     this.refreshIntervalMs = this.platform.config.refreshIntervalMs || this.refreshIntervalMs;
     this.statusUrl = this.platform.config.statusUrl || '';
     this.toggleUrl = this.platform.config.toggleUrl || '';
@@ -166,7 +169,17 @@ export class ExamplePlatformAccessory {
           that.service.updateCharacteristic(that.platform.Characteristic.TargetDoorState, state);
           that.prevState = state;
           that.stateUpdatedMs = Date.now();
-          this.fixer = 0; // reset
+          that.fixer = 0; // reset
+          if (that.autoCloseTimeout !== undefined) {
+            that.autoCloseTimeout.clear();
+          }
+          if (state === that.platform.Characteristic.CurrentDoorState.OPEN) {
+            that.autoCloseTimeout = setTimeout(async () => {
+              await got.post(that.toggleUrl, {
+                ...that.authHeaders,
+              });
+            }, that.autoCloseSec * 1000);
+          }
         }
         setTimeout(fn, this.refreshIntervalMs);
       } catch (err) {
