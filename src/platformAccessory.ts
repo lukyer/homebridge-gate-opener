@@ -35,6 +35,7 @@ export class ExamplePlatformAccessory {
   private bearerToken: string;
   private authHeaders = {};
   private autoCloseSec = 600;
+  private autoCloseEnabled = false;
 
   private stateUpdatedMs = 0; // epoch
   private fixer = 0;
@@ -46,6 +47,7 @@ export class ExamplePlatformAccessory {
   ) {
 
     this.autoCloseSec = this.platform.config.autoCloseSec || this.autoCloseSec;
+    this.autoCloseEnabled = this.platform.config.autoCloseEnabled || this.autoCloseEnabled;
     this.refreshIntervalMs = this.platform.config.refreshIntervalMs || this.refreshIntervalMs;
     this.statusUrl = this.platform.config.statusUrl || '';
     this.toggleUrl = this.platform.config.toggleUrl || '';
@@ -157,7 +159,7 @@ export class ExamplePlatformAccessory {
         if (body === 'open') {
           // await new Promise(f => setTimeout(f, 30000));
           state = that.platform.Characteristic.CurrentDoorState.OPEN;
-        } else if (body === 'close') {
+        } else if (body === 'closed') {
           state = that.platform.Characteristic.CurrentDoorState.CLOSED;
         } else {
           that.platform.log.error('Got WRONG accessory state %s (%s)', state, body);
@@ -174,12 +176,16 @@ export class ExamplePlatformAccessory {
             clearTimeout(that.autoCloseTimeout);
             that.platform.log.debug('Auto close timer cleared %s (%s)', state, body);
           }
-          if (state === that.platform.Characteristic.CurrentDoorState.OPEN) {
-            that.platform.log.debug('Auto close timer set %s (%s)', state, body);
-            that.autoCloseTimeout = setTimeout(async () => {
-              that.service.setCharacteristic(that.platform.Characteristic.TargetDoorState, that.platform.Characteristic.CurrentDoorState.CLOSED);
-              that.platform.log.debug('Auto close timer ticked %s (%s)', state, body);
-            }, that.autoCloseSec * 1000);
+          if (that.autoCloseEnabled) {
+            if (state === that.platform.Characteristic.CurrentDoorState.OPEN) {
+              that.platform.log.debug('Auto close timer set %s (%s)', state, body);
+              that.autoCloseTimeout = setTimeout(async () => {
+                that.service.setCharacteristic(that.platform.Characteristic.TargetDoorState, that.platform.Characteristic.CurrentDoorState.CLOSED);
+                that.platform.log.debug('Auto close timer ticked %s (%s)', state, body);
+              }, that.autoCloseSec * 1000);
+            }
+          } else {
+            that.platform.log.debug('Auto close DISABLED');
           }
         }
         setTimeout(fn, this.refreshIntervalMs);

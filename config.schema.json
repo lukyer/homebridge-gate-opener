@@ -29,6 +29,12 @@
         "required": false,
         "default": 600
       },
+      "autoCloseEnabled": {
+        "title": "Auto close enabled",
+        "type": "boolean",
+        "required": false,
+        "default": false
+      },
       "statusUrl": {
         "title": "GET Url to get current gate status from sensor",
         "type": "string",
